@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import re
 
-from utils import get_video_comments, generate_worldcloud
+from utils import get_video_comments, generate_worldcloud, analyse_comments_huggingface, highlight_rows
 
 st.set_page_config(page_title="YouTube Video Comments Sentiment Analysis App")
 st.title("YouTube Video Comments Sentiment Analysis App")
@@ -13,20 +13,29 @@ video_url = st.text_input(
 submit_button = st.button("Submit")
 
 if submit_button:
-    print(video_url)
     valid_url = re.match(
         "^(http(s)?:\/\/(www.)?)?youtube.com\/watch\?v=.+", video_url)
 
     if valid_url:
         video_id = video_url[video_url.index("=") + 1:]
-        comments_list = get_video_comments(video_id)
+        with st.spinner("Analysing comments..."):
+            comments_list = get_video_comments(video_id)
 
-        df = pd.DataFrame(comments_list)
-        filtered_df = df[["textDisplay", "authorDisplayName",
-                          "likeCount", "publishedAt", "updatedAt"]]
+            df = pd.DataFrame(comments_list)
+            sentiment_columns = analyse_comments_huggingface(comments_list)
+            df["sentiment"] = sentiment_columns["sentiment"]
+            df["polarity"] = sentiment_columns["polarity"]
+
+            filtered_df = df[["textDisplay", "authorDisplayName",
+                              "likeCount", "publishedAt", "updatedAt", "sentiment", "polarity"]]
+            filtered_df = filtered_df.sort_values(
+                by="likeCount", ascending=False).reset_index(drop=True)
+            video_wordcloud = generate_worldcloud(comments_list)
+
+        st.subheader("Video Comments:")
+        filtered_df = filtered_df.style.apply(highlight_rows, axis=1)
         st.dataframe(filtered_df)
-
-        video_wordcloud = generate_worldcloud(comments_list)
+        st.subheader("Word Cloud:")
         st.image(video_wordcloud)
 
     else:
