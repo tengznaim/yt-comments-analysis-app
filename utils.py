@@ -8,6 +8,7 @@ from wordcloud import WordCloud
 from textblob import TextBlob
 from transformers import pipeline
 
+# Use for local testing
 load_dotenv()
 
 
@@ -52,17 +53,17 @@ def highlight_rows(s):
         return ['background-color: #f44336']*len(s)
 
 
-def analyse_comments_huggingface(comments_list: list):
+def analyse_comments_huggingface(classifier, comments_list: list):
     """Computes sentiment analysis on a list of comments using HuggingFace's Transformers.
 
     Args:
+        classifier (transformers.pipeline): A transformers pipeline for sentiment analysis.
         comments_list (list): List of items properties from the commentThreads response.
 
     Returns:
         sentiment_columns (dict): A dict of two lists with "sentiment" and "polarity" as keys.
     """
 
-    classifier = pipeline("sentiment-analysis")
     comments_text = [comment["textDisplay"] for comment in comments_list]
 
     predictions = classifier(comments_text)
@@ -81,7 +82,7 @@ def analyse_comments_textblob(comments_list: list):
         comments_list (list): List of items properties from the commentThreads response.
 
     Returns:
-        sentiment_columns (dict): A dict of two lists with "sentiment" and "polarity" as keys.
+        sentiment_columns (dict): A dict of 3 lists with "sentiment", "polarity" and "subjectivity" as keys.
     """
 
     comments_text = [comment["textDisplay"] for comment in comments_list]
@@ -90,21 +91,25 @@ def analyse_comments_textblob(comments_list: list):
 
     polarity = []
     sentiment = []
+    subjectivity = []
 
     for comment in processed_comments:
         comment_blob = TextBlob(comment)
         comment_polarity = comment_blob.sentiment.polarity
+        comment_subjectivity = comment_blob.sentiment.subjectivity
 
         if comment_polarity > 0:
             sentiment.append("POSITIVE")
         elif comment_polarity < 0:
             sentiment.append("NEGATIVE")
         else:
-            sentiment.append("Neutral")
+            sentiment.append("NEUTRAL")
 
         polarity.append(comment_polarity)
+        subjectivity.append(comment_subjectivity)
 
-    sentiment_columns = {"sentiment": sentiment, "polarity": polarity}
+    sentiment_columns = {"sentiment": sentiment,
+                         "polarity": polarity, "subjectivity": subjectivity}
 
     return sentiment_columns
 
