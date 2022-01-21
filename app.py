@@ -37,33 +37,41 @@ if submit_button:
 
         # Comments dataframe
         st.subheader("Video Comments:")
-        st.write(
-            "Green highlighted rows - Positive predicted sentiment  \n  Red highlighted rows - Negative predicted sentiment  \n  Scroll to the right of the DataFrame below to view the sentiment scores")
+        st.info(
+            "🟩 - Positive predicted sentiment  \n  🟥 - Negative predicted sentiment  \n  Scroll to the right of the DataFrame below to view the scores")
         filtered_df = filtered_df.style.apply(highlight_rows, axis=1)
         st.dataframe(filtered_df)
 
         # Stats
         st.subheader("Analysis:")
-        st.write("These charts show a breakdown of the predicted scores.")
-        col_1, col_2 = st.columns(2)
+        st.info("**Polarity**  \n  More than 0 = Leans towards a positive sentiment  \n  0 = Neutral sentiment  \n  Less than 0 = Leans towards a negative sentiment  \n  **Subjectivity**  \n  A value closer to 1 indicates a more subjective comment (potentially based on opinion)")
 
-        fig_1, ax_1 = plt.subplots()
+        px = 1 / plt.rcParams['figure.dpi']
+        fig, axes = plt.subplots(1, 2, figsize=(1280*px, 720*px))
+
+        plt.subplot(1, 2, 1)
         labels = list(df["sentiment"].value_counts().keys())
         values = df["sentiment"].value_counts().values
-
-        ax_1.pie(values, labels=labels, autopct='%1.1f%%')
+        plt.pie(values, labels=labels, autopct='%1.1f%%')
         plt.title("Sentiment Breakdown")
-        col_1.pyplot(fig_1)
 
-        fig_2, ax_2 = plt.subplots()
+        plt.subplot(1, 2, 2)
         polarity_values = df["polarity"]
         subjectivity_values = df["subjectivity"]
-
-        ax_2.scatter(polarity_values, subjectivity_values)
+        plt.scatter(polarity_values, subjectivity_values)
         plt.xlabel("Polarity")
+        plt.xlim([-1, 1])
         plt.ylabel("Subjectivity")
+        plt.ylim([0, 1])
+        plt.title("Polarity Against Subjectivity")
         plt.grid()
-        col_2.pyplot(fig_2)
+
+        st.pyplot(fig)
+
+        # Average Scores
+        col_1, col_2 = st.columns(2)
+        col_1.metric("Average Polarity", df["polarity"].mean())
+        col_2.metric("Average Subjectivity", df["subjectivity"].mean())
 
         # Word Cloud
         st.subheader("Word Cloud:")
