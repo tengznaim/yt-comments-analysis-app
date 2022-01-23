@@ -6,7 +6,7 @@ import json
 import re
 from wordcloud import WordCloud
 from textblob import TextBlob
-from transformers import pipeline
+# from transformers import pipeline
 
 # Use for local testing
 load_dotenv()
@@ -62,6 +62,8 @@ def analyse_comments_huggingface(classifier, comments_list: list):
 
     Returns:
         sentiment_columns (dict): A dict of two lists with "sentiment" and "polarity" as keys.
+
+    Note: This is currently an unused method.
     """
 
     comments_text = [comment["textDisplay"] for comment in comments_list]
@@ -142,10 +144,10 @@ def generate_worldcloud(comments_list: list):
     Note: This assumes that the input list is the filtered list of items from the API response.
     """
 
-    # TODO: Look into preprocessing, use for both wordcloud and potentially sentiment analysis.
-
     comments_text = [comment["textDisplay"] for comment in comments_list]
-    all_comments = " ".join(comments_text)
+    processed_comments = [preprocess_text(
+        comment) for comment in comments_text]
+    all_comments = " ".join(processed_comments)
 
     video_wordcloud = WordCloud(
         background_color="white", width=1280, height=720).generate(all_comments)

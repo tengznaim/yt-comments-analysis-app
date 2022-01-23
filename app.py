@@ -4,7 +4,7 @@ import re
 # from transformers import pipeline
 import matplotlib.pyplot as plt
 
-from utils import get_video_comments, generate_worldcloud, analyse_comments_huggingface, analyse_comments_textblob, highlight_rows
+from utils import get_video_comments, generate_worldcloud, analyse_comments_textblob, highlight_rows
 
 st.set_page_config(page_title="YouTube Video Comments Analysis App")
 st.title("YouTube Video Comments Analysis App")
@@ -64,6 +64,7 @@ if submit_button:
         plt.ylabel("Subjectivity")
         plt.ylim([0, 1])
         plt.title("Polarity Against Subjectivity")
+        plt.axvline(x=0, color='r', linestyle='-')
         plt.grid()
 
         st.pyplot(fig)
